@@ -1,7 +1,7 @@
 import { FoodEntry, FoodMicros, MicroTargets, GraphEdge } from '../types';
 
-const EDGE_THRESHOLD = 0.35;
-const MICRO_SIGNIFICANCE = 0.15;
+const EDGE_THRESHOLD = 0.4;
+const MICRO_SIGNIFICANCE = 0.18;
 
 const MICRO_KEYS: (keyof FoodMicros)[] = [
   'iron_mg',

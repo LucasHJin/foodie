@@ -15,7 +15,8 @@ import { NextRequest, NextResponse } from 'next/server';
  *   - foodPortions: common serving sizes (e.g. "1 cup" = 91g)
  */
 const NUTRIENT_ID_MAP: Record<number, string> = {
-  1008: 'calories',
+  1008: 'calories',      // Energy, kcal
+  1062: 'calories_kj',  // Energy, kJ (some Foundation foods only report kJ)
   1003: 'protein_g',
   1005: 'carbs_g',
   1004: 'fat_g',
@@ -37,13 +38,26 @@ const NUTRIENT_ID_MAP: Record<number, string> = {
 function extractFoodNutrients(foodNutrients: any[]): Record<string, number> {
   const out: Record<string, number> = {};
   for (const n of foodNutrients ?? []) {
-    // FoodNutrient: nutrientId is nested at n.nutrient.id
     const nutrientId = n.nutrient?.id;
     if (nutrientId != null) {
       const key = NUTRIENT_ID_MAP[nutrientId];
       if (key !== undefined) out[key] = n.amount ?? 0;
     }
   }
+
+  // Convert kJ → kcal when only kJ is reported
+  if (!out.calories && out.calories_kj) {
+    out.calories = Math.round(out.calories_kj / 4.184);
+  }
+  delete out.calories_kj;
+
+  // 4-4-9 fallback: estimate kcal from macros when energy is still missing/zero
+  if (!out.calories && (out.protein_g || out.carbs_g || out.fat_g)) {
+    out.calories = Math.round(
+      (out.protein_g ?? 0) * 4 + (out.carbs_g ?? 0) * 4 + (out.fat_g ?? 0) * 9
+    );
+  }
+
   return out;
 }
 

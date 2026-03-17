@@ -8,7 +8,8 @@ import { NextRequest, NextResponse } from 'next/server';
  * All amounts are per 100g (USDA normalises to per-100g in search results).
  */
 const NUTRIENT_NUMBER_MAP: Record<number, string> = {
-  208: 'calories',       // Energy
+  208: 'calories',       // Energy, kcal
+  268: 'calories_kj',   // Energy, kJ (some Foundation foods only report kJ)
   203: 'protein_g',      // Protein
   205: 'carbs_g',        // Carbohydrate, by difference
   204: 'fat_g',          // Total lipid (fat)
@@ -30,10 +31,23 @@ const NUTRIENT_NUMBER_MAP: Record<number, string> = {
 function extractAbridgedNutrients(foodNutrients: any[]): Record<string, number> {
   const out: Record<string, number> = {};
   for (const n of foodNutrients ?? []) {
-    // AbridgedFoodNutrient uses `number` (int) as the nutrient identifier
     const key = NUTRIENT_NUMBER_MAP[Number(n.number)];
     if (key !== undefined) out[key] = n.amount ?? 0;
   }
+
+  // Convert kJ → kcal when only kJ is reported
+  if (!out.calories && out.calories_kj) {
+    out.calories = Math.round(out.calories_kj / 4.184);
+  }
+  delete out.calories_kj;
+
+  // 4-4-9 fallback: estimate kcal from macros when energy is still missing/zero
+  if (!out.calories && (out.protein_g || out.carbs_g || out.fat_g)) {
+    out.calories = Math.round(
+      (out.protein_g ?? 0) * 4 + (out.carbs_g ?? 0) * 4 + (out.fat_g ?? 0) * 9
+    );
+  }
+
   return out;
 }
 
