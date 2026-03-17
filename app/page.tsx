@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { UserConfig, FoodEntry, SearchResult, GhostNodeData, DailyTotals, FoodMicros } from '@/lib/types';
 import { IndexedDBAdapter } from '@/lib/storage/IndexedDBAdapter';
 import OnboardingFlow from './_components/OnboardingFlow';
@@ -42,6 +42,7 @@ export default function FoodiePage() {
   const [currentDate, setCurrentDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
   const [entries, setEntries] = useState<FoodEntry[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [deleteMode, setDeleteMode] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
   useEffect(() => {
@@ -119,10 +120,32 @@ export default function FoodiePage() {
     await storage.saveDay(currentDate, updated);
   }, [entries, currentDate]);
 
+  const handleDeleteFood = useCallback(async (entryId: string) => {
+    const updated = entries.filter((e) => e.id !== entryId);
+    setEntries(updated);
+    await storage.saveDay(currentDate, updated);
+  }, [entries, currentDate]);
+
+  const toggleDeleteMode = useCallback(() => {
+    setDeleteMode((d) => {
+      if (!d) setSearchOpen(false);
+      return !d;
+    });
+  }, []);
+
   const handleGhostClick = useCallback((ghost: GhostNodeData) => {
     setSearchOpen(true);
     // Pre-fill with the ghost's suggested food name (FoodSearchBar opens clean; user can type)
     void ghost;
+  }, []);
+
+  // Escape key exits delete mode
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setDeleteMode(false);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, []);
 
   if (appState === 'loading') {
@@ -151,6 +174,8 @@ export default function FoodiePage() {
           targets={config!.targets}
           onAddFood={() => setSearchOpen(true)}
           onGhostClick={handleGhostClick}
+          onDeleteFood={handleDeleteFood}
+          deleteMode={deleteMode}
           width={dimensions.width}
           height={dimensions.height}
         />
@@ -167,16 +192,69 @@ export default function FoodiePage() {
           <CalorieBar totals={totals} targets={config!.targets} />
         </div>
 
+        {/* Delete mode button — bottom left */}
+        <div className="absolute bottom-6 left-6 z-20 flex flex-col items-start gap-2">
+          <AnimatePresence>
+            {deleteMode && (
+              <motion.div
+                initial={{ opacity: 0, y: 6, scale: 0.94 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 6, scale: 0.94 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+                className="pointer-events-none"
+              >
+                <div className="bg-stone-900/80 backdrop-blur-sm text-white text-[11px] px-3 py-1.5 rounded-lg whitespace-nowrap shadow-sm">
+                  click a node to remove · esc to cancel
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <motion.button
+            onClick={toggleDeleteMode}
+            aria-label={deleteMode ? 'Exit delete mode' : 'Delete food'}
+            className={`w-11 h-11 rounded-full flex items-center justify-center shadow-lg transition-colors ${
+              deleteMode
+                ? 'bg-red-500 text-white shadow-red-200/60 hover:bg-red-400'
+                : 'bg-white text-stone-500 border border-stone-200 shadow-stone-200/50 hover:text-stone-800 hover:border-stone-300'
+            }`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
+            animate={{ rotate: deleteMode ? 45 : 0 }}
+            transition={{ type: 'spring', damping: 18, stiffness: 300 }}
+          >
+            <motion.svg
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+            >
+              <path d="M2 7h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <motion.path
+                d="M7 2v10"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                animate={{ opacity: deleteMode ? 1 : 0, scaleY: deleteMode ? 1 : 0 }}
+                transition={{ duration: 0.15 }}
+                style={{ transformOrigin: '7px 7px' }}
+              />
+            </motion.svg>
+          </motion.button>
+        </div>
+
         {/* Add food button — bottom right */}
-        <button
-          onClick={() => setSearchOpen(true)}
-          className="absolute bottom-6 right-6 z-20 w-11 h-11 bg-stone-900 text-white rounded-full flex items-center justify-center hover:bg-stone-700 transition-colors shadow-lg shadow-stone-300/40 hover:shadow-stone-400/40 hover:scale-105 active:scale-95"
+        <motion.button
+          onClick={() => { setDeleteMode(false); setSearchOpen(true); }}
+          className="absolute bottom-6 right-6 z-20 w-11 h-11 bg-stone-900 text-white rounded-full flex items-center justify-center shadow-lg shadow-stone-300/40"
           aria-label="Add food"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.92 }}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M8 2v12M2 8h12" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
-        </button>
+        </motion.button>
       </div>
 
       {/* Floating search + inline amount confirm */}

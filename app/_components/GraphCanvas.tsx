@@ -20,6 +20,8 @@ interface GraphCanvasProps {
   targets: NutritionTargets;
   onAddFood?: () => void;
   onGhostClick: (ghost: GhostNodeData) => void;
+  onDeleteFood?: (entryId: string) => void;
+  deleteMode?: boolean;
   width: number;
   height: number;
 }
@@ -58,6 +60,8 @@ export default function GraphCanvas({
   targets,
   onAddFood,
   onGhostClick,
+  onDeleteFood,
+  deleteMode = false,
   width,
   height,
 }: GraphCanvasProps) {
@@ -118,6 +122,7 @@ export default function GraphCanvas({
       const radius = getNodeRadius(calories, isGhost);
       const nx = node.x ?? 0;
       const ny = node.y ?? 0;
+      const isDeleteTarget = deleteMode && !isGhost && hoveredNode?.id === node.id;
 
       ctx.beginPath();
       ctx.arc(nx, ny, radius, 0, 2 * Math.PI);
@@ -131,21 +136,44 @@ export default function GraphCanvas({
         ctx.stroke();
         ctx.setLineDash([]);
       } else {
-        ctx.fillStyle = getNodeColor(node.protein_g ?? 0, node.carbs_g ?? 0, node.fat_g ?? 0, calories);
+        ctx.fillStyle = isDeleteTarget
+          ? 'hsl(0, 52%, 60%)'
+          : getNodeColor(node.protein_g ?? 0, node.carbs_g ?? 0, node.fat_g ?? 0, calories);
         ctx.fill();
+
+        // Subtle delete-mode ring around all food nodes
+        if (deleteMode) {
+          ctx.beginPath();
+          ctx.arc(nx, ny, radius + 3 / globalScale, 0, 2 * Math.PI);
+          ctx.strokeStyle = isDeleteTarget
+            ? 'rgba(210, 55, 55, 0.65)'
+            : 'rgba(200, 80, 80, 0.2)';
+          ctx.lineWidth = 1.5 / globalScale;
+          ctx.stroke();
+        }
       }
 
       const minScaleForLabel = isGhost ? 0.3 : 0.5;
       if (globalScale >= minScaleForLabel) {
-        const label = node.name.length > 14 ? node.name.slice(0, 14) + '…' : node.name;
         const fontSize = Math.max(9, 11 / globalScale);
         ctx.font = `${fontSize}px ui-sans-serif, system-ui`;
         ctx.textAlign = 'center';
-        ctx.fillStyle = isGhost ? 'rgba(160, 155, 148, 0.9)' : 'rgba(55, 50, 45, 0.85)';
-        ctx.fillText(label, nx, ny + radius + fontSize * 1.2);
+
+        if (isDeleteTarget) {
+          // Draw × centered on the node
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+          ctx.textBaseline = 'middle';
+          ctx.font = `bold ${Math.max(11, fontSize * 1.3)}px ui-sans-serif, system-ui`;
+          ctx.fillText('×', nx, ny);
+          ctx.textBaseline = 'alphabetic';
+        } else {
+          const label = node.name.length > 14 ? node.name.slice(0, 14) + '…' : node.name;
+          ctx.fillStyle = isGhost ? 'rgba(160, 155, 148, 0.9)' : 'rgba(55, 50, 45, 0.85)';
+          ctx.fillText(label, nx, ny + radius + fontSize * 1.2);
+        }
       }
     },
-    []
+    [deleteMode, hoveredNode]
   );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -180,9 +208,12 @@ export default function GraphCanvas({
     (node: any) => {
       if (node.isGhost) {
         onGhostClick(node as GhostNodeData);
+      } else if (deleteMode && onDeleteFood) {
+        setHoveredNode(null);
+        onDeleteFood(node.id);
       }
     },
-    [onGhostClick]
+    [onGhostClick, deleteMode, onDeleteFood]
   );
 
   const handleMouseMove = useCallback((event: MouseEvent) => {
@@ -241,7 +272,7 @@ export default function GraphCanvas({
   }, []);
 
   return (
-    <div className="relative w-full h-full">
+    <div className={`relative w-full h-full${deleteMode ? ' cursor-crosshair' : ''}`}>
       {graphData.nodes.length === 0 && (
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <div className="text-stone-300 text-sm font-medium mb-1">Nothing logged yet</div>
@@ -274,7 +305,7 @@ export default function GraphCanvas({
       />
 
       <AnimatePresence>
-        {hoveredNode && (
+        {!deleteMode && hoveredNode && (
           <MacroRingCard
             key={hoveredNode.id}
             entry={hoveredNode}
