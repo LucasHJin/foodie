@@ -119,7 +119,7 @@ export default function FoodSearchBar({ onConfirm, onClose }: FoodSearchBarProps
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Blur backdrop — click to close */}
       <motion.div
-        className="absolute inset-0 bg-stone-900/25 backdrop-blur-sm"
+        className="absolute inset-0 bg-stone-900/25 backdrop-blur-xs"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -201,9 +201,11 @@ export default function FoodSearchBar({ onConfirm, onClose }: FoodSearchBarProps
                         <div className={`text-sm truncate transition-colors ${isSelected ? 'text-stone-700' : 'text-stone-800'}`}>
                           {food.name}
                         </div>
-                        {food.brandOwner && (
+                        {food.brandOwner ? (
                           <div className="text-[10px] text-stone-400 truncate mt-0.5">{food.brandOwner}</div>
-                        )}
+                        ) : (food.dataType === 'Foundation' || food.dataType === 'SR Legacy') ? (
+                          <div className="text-[10px] text-emerald-600/70 mt-0.5">whole food</div>
+                        ) : null}
                       </div>
 
                       {/* Kcal — only shown when NOT selected */}

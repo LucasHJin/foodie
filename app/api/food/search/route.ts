@@ -37,6 +37,34 @@ function extractAbridgedNutrients(foodNutrients: any[]): Record<string, number> 
   return out;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapFoods(raw: any[]): Record<string, unknown>[] {
+  return raw.map((f) => {
+    const nutrients = extractAbridgedNutrients(f.foodNutrients ?? []);
+    return {
+      fdcId: f.fdcId,
+      dataType: f.dataType,
+      name: f.description,
+      brandOwner: f.brandOwner ?? null,
+      calories: nutrients.calories ?? 0,
+      protein_g: nutrients.protein_g ?? 0,
+      carbs_g: nutrients.carbs_g ?? 0,
+      fat_g: nutrients.fat_g ?? 0,
+    };
+  });
+}
+
+function buildUrl(query: string, apiKey: string, dataType: string, pageSize: number): string {
+  const url = new URL('https://api.nal.usda.gov/fdc/v1/foods/search');
+  url.searchParams.set('query', query);
+  url.searchParams.set('api_key', apiKey);
+  url.searchParams.set('pageSize', String(pageSize));
+  url.searchParams.set('dataType', dataType);
+  url.searchParams.set('sortBy', 'score');
+  url.searchParams.set('sortOrder', 'desc');
+  return url.toString();
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('query');
@@ -48,32 +76,36 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'USDA_API_KEY not configured' }, { status: 500 });
   }
 
-  const url = new URL('https://api.nal.usda.gov/fdc/v1/foods/search');
-  url.searchParams.set('query', query);
-  url.searchParams.set('api_key', apiKey);
-  url.searchParams.set('pageSize', '8');
-  url.searchParams.set('dataType', 'Foundation,SR Legacy,Branded');
-
   try {
-    const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
-    if (!res.ok) throw new Error(`USDA API error: ${res.status}`);
-    const data = await res.json();
+    // Fetch generic foods (Foundation + SR Legacy) and branded foods in parallel.
+    // Generic foods always appear first so e.g. "beef" shows raw/cooked cuts before brands.
+    const [genericRes, brandedRes] = await Promise.all([
+      fetch(buildUrl(query, apiKey, 'Foundation,SR Legacy', 8), { next: { revalidate: 3600 } }),
+      fetch(buildUrl(query, apiKey, 'Branded', 6), { next: { revalidate: 3600 } }),
+    ]);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const foods = (data.foods ?? []).map((f: any) => {
-      const nutrients = extractAbridgedNutrients(f.foodNutrients ?? []);
-      return {
-        fdcId: f.fdcId,
-        dataType: f.dataType,            // "Foundation" | "SR Legacy" | "Branded"
-        name: f.description,
-        brandOwner: f.brandOwner ?? null,
-        calories: nutrients.calories ?? 0,
-        protein_g: nutrients.protein_g ?? 0,
-        carbs_g: nutrients.carbs_g ?? 0,
-        fat_g: nutrients.fat_g ?? 0,
-        // Note: SearchResultFood does NOT include servingSize — that comes from the detail endpoint
-      };
-    });
+    if (!genericRes.ok && !brandedRes.ok) {
+      throw new Error(`USDA API error: ${genericRes.status}`);
+    }
+
+    const [genericData, brandedData] = await Promise.all([
+      genericRes.ok ? genericRes.json() : { foods: [] },
+      brandedRes.ok ? brandedRes.json() : { foods: [] },
+    ]);
+
+    const genericFoods = mapFoods(genericData.foods ?? []);
+    const brandedFoods = mapFoods(brandedData.foods ?? []);
+
+    // Deduplicate by fdcId (generic takes precedence), then cap total at 12
+    const seen = new Set<number>();
+    const foods: Record<string, unknown>[] = [];
+    for (const f of [...genericFoods, ...brandedFoods]) {
+      if (!seen.has(f.fdcId as number)) {
+        seen.add(f.fdcId as number);
+        foods.push(f);
+      }
+      if (foods.length >= 12) break;
+    }
 
     return NextResponse.json({ foods });
   } catch (err) {

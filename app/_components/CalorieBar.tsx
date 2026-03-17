@@ -20,7 +20,7 @@ export default function CalorieBar({ totals, targets }: CalorieBarProps) {
       <button
         onClick={() => setOpen(true)}
         aria-label="View nutrition details"
-        className="group flex items-center gap-2.5 bg-white/90 backdrop-blur-sm border border-stone-200/80 rounded-full px-4 py-2 shadow-sm shadow-stone-200/50 hover:shadow-md hover:border-stone-300 transition-all"
+        className="group flex items-center gap-2.5 bg-white/90 backdrop-blur-xs border border-stone-200/80 rounded-full px-4 py-2 shadow-sm shadow-stone-200/50 hover:shadow-md hover:border-stone-300 transition-all"
       >
         <div className="w-24 h-1.5 bg-stone-100 rounded-full overflow-hidden">
           <div

@@ -182,7 +182,7 @@ export default function FoodiePage() {
 
         {/* Floating date navigator — top center */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
-          <div className="bg-white/85 backdrop-blur-sm border border-stone-200/70 rounded-full px-4 py-2 shadow-sm shadow-stone-200/40">
+          <div className="bg-white/85 backdrop-blur-xs border border-stone-200/70 rounded-full px-4 py-2 shadow-sm shadow-stone-200/40">
             <DayNavigator date={currentDate} onDateChange={setCurrentDate} />
           </div>
         </div>
@@ -203,7 +203,7 @@ export default function FoodiePage() {
                 transition={{ duration: 0.18, ease: 'easeOut' }}
                 className="pointer-events-none"
               >
-                <div className="bg-stone-900/80 backdrop-blur-sm text-white text-[11px] px-3 py-1.5 rounded-lg whitespace-nowrap shadow-sm">
+                <div className="bg-stone-900/80 backdrop-blur-xs text-white text-[11px] px-3 py-1.5 rounded-lg whitespace-nowrap shadow-sm">
                   click a node to remove · esc to cancel
                 </div>
               </motion.div>
