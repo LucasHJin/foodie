@@ -230,15 +230,15 @@ export default function GraphCanvas({
       const fg = graphRef.current;
       if (!fg || typeof fg.d3Force !== 'function') return false;
 
-      fg.d3Force('charge', forceManyBody().strength(-90));
+      fg.d3Force('charge', forceManyBody().strength(-60));
 
       const linkForce = fg.d3Force('link');
       if (linkForce) linkForce.distance(180).strength(0.012);
 
       fg.d3Force('collision', forceCollide((node: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
         const isGhost = node.isGhost === true;
-        return getNodeRadius(node.calories ?? 0, isGhost) + 20;
-      }).strength(1));
+        return getNodeRadius(node.calories ?? 0, isGhost) + (isGhost ? 6 : 18);
+      }).strength(0.7));
 
       fg.d3ReheatSimulation();
       return true;
