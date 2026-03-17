@@ -78,41 +78,32 @@ export default function FoodiePage() {
     setAppState('app');
   }, []);
 
-  const handleAddFood = useCallback(async (result: SearchResult) => {
+  const handleFoodConfirm = useCallback(async (
+    result: SearchResult,
+    amountG: number,
+    per100g: Record<string, number>
+  ) => {
     setSearchOpen(false);
-
-    let nutrientData: Record<string, number> = {
-      calories: result.calories,
-      protein_g: result.protein_g,
-      carbs_g: result.carbs_g,
-      fat_g: result.fat_g,
-    };
-
-    try {
-      const res = await fetch(`/api/food/${result.fdcId}`);
-      const data = await res.json();
-      if (data.nutrients) nutrientData = { ...nutrientData, ...data.nutrients };
-    } catch {
-      // proceed with search-result data
-    }
+    const ratio = amountG / 100;
+    const s = (v: number | undefined) => Math.round(((v ?? 0) * ratio) * 10) / 10;
 
     const entry: FoodEntry = {
       id: `${result.fdcId}-${Date.now()}`,
       fdcId: result.fdcId,
       name: result.name,
-      amount: 100,
-      calories: nutrientData.calories ?? result.calories,
-      protein_g: nutrientData.protein_g ?? result.protein_g,
-      carbs_g: nutrientData.carbs_g ?? result.carbs_g,
-      fat_g: nutrientData.fat_g ?? result.fat_g,
+      amount: amountG,
+      calories: s(per100g.calories ?? result.calories),
+      protein_g: s(per100g.protein_g ?? result.protein_g),
+      carbs_g: s(per100g.carbs_g ?? result.carbs_g),
+      fat_g: s(per100g.fat_g ?? result.fat_g),
       micros: {
-        iron_mg: nutrientData.iron_mg,
-        calcium_mg: nutrientData.calcium_mg,
-        vitaminD_mcg: nutrientData.vitaminD_mcg,
-        vitaminC_mg: nutrientData.vitaminC_mg,
-        zinc_mg: nutrientData.zinc_mg,
-        magnesium_mg: nutrientData.magnesium_mg,
-        potassium_mg: nutrientData.potassium_mg,
+        iron_mg: s(per100g.iron_mg),
+        calcium_mg: s(per100g.calcium_mg),
+        vitaminD_mcg: s(per100g.vitaminD_mcg),
+        vitaminC_mg: s(per100g.vitaminC_mg),
+        zinc_mg: s(per100g.zinc_mg),
+        magnesium_mg: s(per100g.magnesium_mg),
+        potassium_mg: s(per100g.potassium_mg),
       },
       addedAt: new Date().toISOString(),
     };
@@ -147,33 +138,7 @@ export default function FoodiePage() {
       className="fixed inset-0 flex flex-col"
       style={{ background: '#F5F4F0' }}
     >
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-stone-200/60 z-10 bg-[#F5F4F0]/90 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium tracking-tight text-stone-800">foodie</span>
-          <span className="w-1 h-1 rounded-full bg-stone-300" />
-          <span className="text-xs text-stone-400">knowledge graph</span>
-        </div>
-
-        <DayNavigator date={currentDate} onDateChange={setCurrentDate} />
-
-        <button
-          onClick={async () => {
-            await storage.saveConfig(null as unknown as UserConfig);
-            setAppState('onboarding');
-          }}
-          className="text-[10px] text-stone-300 hover:text-stone-500 transition-colors"
-          title="Reset profile"
-        >
-          {config?.goal && (
-            <span className="px-2 py-1 bg-stone-100 rounded-full text-stone-500 font-medium capitalize">
-              {config.goal}
-            </span>
-          )}
-        </button>
-      </div>
-
-      {/* Graph fills remaining space */}
+      {/* Graph fills full screen */}
       <div className="flex-1 relative overflow-hidden">
         <GraphCanvas
           entries={entries}
@@ -181,19 +146,37 @@ export default function FoodiePage() {
           onAddFood={() => setSearchOpen(true)}
           onGhostClick={handleGhostClick}
           width={dimensions.width}
-          height={dimensions.height - 100}
+          height={dimensions.height}
         />
+
+        {/* Floating date navigator — top center */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
+          <div className="bg-white/85 backdrop-blur-md border border-stone-200/70 rounded-full px-4 py-2 shadow-sm shadow-stone-200/40">
+            <DayNavigator date={currentDate} onDateChange={setCurrentDate} />
+          </div>
+        </div>
+
+        {/* Calorie pill — bottom center */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
+          <CalorieBar totals={totals} targets={config!.targets} />
+        </div>
+
+        {/* Add food button — bottom right */}
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="absolute bottom-6 right-6 z-20 w-11 h-11 bg-stone-900 text-white rounded-full flex items-center justify-center hover:bg-stone-700 transition-colors shadow-lg shadow-stone-300/40 hover:shadow-stone-400/40 hover:scale-105 active:scale-95"
+          aria-label="Add food"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 2v12M2 8h12" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        </button>
       </div>
 
-      {/* Bottom calorie bar */}
-      <div className="border-t border-stone-200/60 bg-[#F5F4F0]/90 backdrop-blur-sm">
-        <CalorieBar totals={totals} targets={config!.targets} />
-      </div>
-
-      {/* Floating search */}
+      {/* Floating search + inline amount confirm */}
       {searchOpen && (
         <FoodSearchBar
-          onSelect={handleAddFood}
+          onConfirm={handleFoodConfirm}
           onClose={() => setSearchOpen(false)}
         />
       )}

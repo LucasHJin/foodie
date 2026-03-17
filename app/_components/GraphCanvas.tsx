@@ -15,7 +15,7 @@ const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
 interface GraphCanvasProps {
   entries: FoodEntry[];
   targets: NutritionTargets;
-  onAddFood: () => void;
+  onAddFood?: () => void;
   onGhostClick: (ghost: GhostNodeData) => void;
   width: number;
   height: number;
@@ -204,16 +204,6 @@ export default function GraphCanvas({
           y={hoverPos.y}
         />
       )}
-
-      <button
-        onClick={onAddFood}
-        className="absolute bottom-5 left-1/2 -translate-x-1/2 w-11 h-11 bg-stone-900 text-white rounded-full flex items-center justify-center hover:bg-stone-700 transition-colors shadow-lg shadow-stone-300/40 hover:shadow-stone-400/40 hover:scale-105 active:scale-95"
-        aria-label="Add food"
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M8 2v12M2 8h12" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
-        </svg>
-      </button>
     </div>
   );
 }

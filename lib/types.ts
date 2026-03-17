@@ -87,12 +87,15 @@ export interface DailyTotals {
 
 export interface SearchResult {
   fdcId: number;
+  dataType?: string;   // "Foundation" | "SR Legacy" | "Branded"
   name: string;
   brandOwner?: string;
+  // All values are per 100g — AbridgedFoodNutrient.amount from the search endpoint
   calories: number;
   protein_g: number;
   carbs_g: number;
   fat_g: number;
+  // Note: servingSize is NOT returned by the search endpoint; comes from detail fetch only
 }
 
 export const MICRO_LABELS: Record<keyof FoodMicros, string> = {
