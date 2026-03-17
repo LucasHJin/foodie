@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 const { forceCollide, forceManyBody } = require('d3-force-3d');
 import { FoodEntry, FoodMicros, NutritionTargets, AnyGraphNode, GraphEdge, FoodGraphNode, GhostNodeData, MICRO_LABELS } from '@/lib/types';
 import { buildEdges } from '@/lib/graph/edgeLogic';
-import { computeGhostNodes } from '@/lib/graph/ghostNodes';
+import { findDeficiencies, fallbackGhostNodes } from '@/lib/graph/ghostNodes';
 import MacroRingCard from './MacroRingCard';
 
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
@@ -35,11 +35,16 @@ interface GraphData {
   links: GraphLink[];
 }
 
-function getNodeShade(calories: number, isGhost: boolean): string {
-  if (isGhost) return 'rgba(212, 209, 204, 0.7)';
+function getNodeColor(protein: number, carbs: number, fat: number, calories: number): string {
   const intensity = Math.min(calories / 700, 1);
-  const shade = Math.round(175 - intensity * 145);
-  return `rgb(${shade}, ${Math.round(shade * 0.98)}, ${Math.round(shade * 0.96)})`;
+  const lightness = 68 - intensity * 35;
+
+  if (protein >= carbs && protein >= fat) {
+    return `hsl(12, 32%, ${lightness}%)`;
+  } else if (carbs >= protein && carbs >= fat) {
+    return `hsl(38, 38%, ${lightness}%)`;
+  }
+  return `hsl(85, 22%, ${lightness}%)`;
 }
 
 function getNodeRadius(calories: number, isGhost: boolean): number {
@@ -61,14 +66,47 @@ export default function GraphCanvas({
   const graphRef = useRef<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
 
   useEffect(() => {
+    let cancelled = false;
     const foodNodes: FoodGraphNode[] = entries.map((e) => ({ ...e, isGhost: undefined }));
-    const ghostNodes: GhostNodeData[] = computeGhostNodes(entries, targets);
     const edges = buildEdges(entries, targets);
+    const toLinks = (es: GraphEdge[]) =>
+      es.map((e) => ({ source: e.source, target: e.target, score: e.score, sharedMicros: e.sharedMicros }));
 
-    setGraphData({
-      nodes: [...foodNodes, ...ghostNodes],
-      links: edges.map((e: GraphEdge) => ({ source: e.source, target: e.target, score: e.score, sharedMicros: e.sharedMicros })),
-    });
+    const deficiencies = findDeficiencies(entries, targets);
+
+    // Render food nodes immediately, then layer in ghosts
+    setGraphData({ nodes: foodNodes, links: toLinks(edges) });
+
+    if (deficiencies.length === 0) return;
+
+    (async () => {
+      let ghosts: GhostNodeData[];
+      try {
+        const res = await fetch('/api/ai/suggestions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            deficientNutrients: deficiencies,
+            currentFoods: entries.map((e) => e.name),
+          }),
+        });
+        const data = await res.json();
+        ghosts = ((data.suggestions ?? []) as { nutrient: keyof FoodMicros; name: string; calories: number }[]).map((s) => ({
+          id: `ghost-${s.nutrient}`,
+          isGhost: true as const,
+          deficientNutrient: s.nutrient,
+          name: s.name,
+          calories: s.calories,
+        }));
+      } catch {
+        ghosts = fallbackGhostNodes(deficiencies);
+      }
+      if (!cancelled) {
+        setGraphData({ nodes: [...foodNodes, ...ghosts], links: toLinks(edges) });
+      }
+    })();
+
+    return () => { cancelled = true; };
   }, [entries, targets]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -92,7 +130,7 @@ export default function GraphCanvas({
         ctx.stroke();
         ctx.setLineDash([]);
       } else {
-        ctx.fillStyle = getNodeShade(calories, false);
+        ctx.fillStyle = getNodeColor(node.protein_g ?? 0, node.carbs_g ?? 0, node.fat_g ?? 0, calories);
         ctx.fill();
       }
 

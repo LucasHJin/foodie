@@ -11,6 +11,11 @@ const MICRO_KEYS: (keyof FoodMicros)[] = [
   'zinc_mg',
   'magnesium_mg',
   'potassium_mg',
+  'vitaminA_mcg',
+  'vitaminB6_mg',
+  'vitaminB12_mcg',
+  'folate_mcg',
+  'phosphorus_mg',
 ];
 
 export function computeEdgeScore(

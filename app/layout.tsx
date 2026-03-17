@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'foodie — nutrition as a knowledge graph',
+  title: 'foodie',
   description: 'Visual food and nutrition tracker. See your day as a living graph.',
 };
 

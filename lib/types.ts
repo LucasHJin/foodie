@@ -10,6 +10,11 @@ export interface MicroTargets {
   zinc_mg: number;
   magnesium_mg: number;
   potassium_mg: number;
+  vitaminA_mcg: number;
+  vitaminB6_mg: number;
+  vitaminB12_mcg: number;
+  folate_mcg: number;
+  phosphorus_mg: number;
 }
 
 export interface MacroTargets {
@@ -38,6 +43,11 @@ export interface FoodMicros {
   zinc_mg?: number;
   magnesium_mg?: number;
   potassium_mg?: number;
+  vitaminA_mcg?: number;
+  vitaminB6_mg?: number;
+  vitaminB12_mcg?: number;
+  folate_mcg?: number;
+  phosphorus_mg?: number;
 }
 
 export interface FoodEntry {
@@ -107,6 +117,11 @@ export const MICRO_LABELS: Record<keyof FoodMicros, string> = {
   zinc_mg: 'Zinc',
   magnesium_mg: 'Magnesium',
   potassium_mg: 'Potassium',
+  vitaminA_mcg: 'Vitamin A',
+  vitaminB6_mg: 'Vitamin B6',
+  vitaminB12_mcg: 'Vitamin B12',
+  folate_mcg: 'Folate',
+  phosphorus_mg: 'Phosphorus',
 };
 
 export const MICRO_UNITS: Record<keyof FoodMicros, string> = {
@@ -117,4 +132,9 @@ export const MICRO_UNITS: Record<keyof FoodMicros, string> = {
   zinc_mg: 'mg',
   magnesium_mg: 'mg',
   potassium_mg: 'mg',
+  vitaminA_mcg: 'mcg',
+  vitaminB6_mg: 'mg',
+  vitaminB12_mcg: 'mcg',
+  folate_mcg: 'mcg',
+  phosphorus_mg: 'mg',
 };

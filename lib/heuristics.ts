@@ -50,5 +50,10 @@ export function computeTargets(
     zinc_mg: sex === 'male' ? 11 : 8,
     magnesium_mg: sex === 'male' ? 420 : 320,
     potassium_mg: 3400,
+    vitaminA_mcg: sex === 'male' ? 900 : 700,
+    vitaminB6_mg: sex === 'male' ? 1.7 : 1.5,
+    vitaminB12_mcg: 2.4,
+    folate_mcg: 400,
+    phosphorus_mg: 700,
   };
 }

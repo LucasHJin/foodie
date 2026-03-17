@@ -50,7 +50,12 @@ Return ONLY valid JSON with these exact keys and numeric values:
   "vitaminC_mg": <vitamin C in mg as integer>,
   "zinc_mg": <zinc in mg as decimal>,
   "magnesium_mg": <magnesium in mg as integer>,
-  "potassium_mg": <potassium in mg as integer>
+  "potassium_mg": <potassium in mg as integer>,
+  "vitaminA_mcg": <vitamin A as RAE in micrograms as integer>,
+  "vitaminB6_mg": <vitamin B6 in mg as decimal>,
+  "vitaminB12_mcg": <vitamin B12 in micrograms as decimal>,
+  "folate_mcg": <folate in micrograms as integer>,
+  "phosphorus_mg": <phosphorus in mg as integer>
 }`;
 
     const result = await model.generateContent(prompt);

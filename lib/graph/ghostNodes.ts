@@ -1,6 +1,6 @@
 import { FoodEntry, FoodMicros, NutritionTargets, GhostNodeData } from '../types';
 
-const GHOST_SUGGESTIONS: Record<keyof FoodMicros, { name: string; calories: number }> = {
+export const GHOST_FALLBACKS: Record<keyof FoodMicros, { name: string; calories: number }> = {
   iron_mg: { name: 'Spinach', calories: 23 },
   calcium_mg: { name: 'Greek Yogurt', calories: 97 },
   vitaminD_mcg: { name: 'Salmon', calories: 208 },
@@ -8,6 +8,11 @@ const GHOST_SUGGESTIONS: Record<keyof FoodMicros, { name: string; calories: numb
   zinc_mg: { name: 'Pumpkin Seeds', calories: 151 },
   magnesium_mg: { name: 'Almonds', calories: 164 },
   potassium_mg: { name: 'Banana', calories: 89 },
+  vitaminA_mcg: { name: 'Sweet Potato', calories: 86 },
+  vitaminB6_mg: { name: 'Chicken Breast', calories: 165 },
+  vitaminB12_mcg: { name: 'Eggs', calories: 155 },
+  folate_mcg: { name: 'Lentils', calories: 116 },
+  phosphorus_mg: { name: 'Cottage Cheese', calories: 98 },
 };
 
 const MICRO_KEYS: (keyof FoodMicros)[] = [
@@ -18,12 +23,17 @@ const MICRO_KEYS: (keyof FoodMicros)[] = [
   'zinc_mg',
   'magnesium_mg',
   'potassium_mg',
+  'vitaminA_mcg',
+  'vitaminB6_mg',
+  'vitaminB12_mcg',
+  'folate_mcg',
+  'phosphorus_mg',
 ];
 
-export function computeGhostNodes(
+export function findDeficiencies(
   entries: FoodEntry[],
-  targets: NutritionTargets
-): GhostNodeData[] {
+  targets: NutritionTargets,
+): (keyof FoodMicros)[] {
   const consumed: FoodMicros = {};
 
   for (const entry of entries) {
@@ -45,13 +55,19 @@ export function computeGhostNodes(
       const consB = consumed[b] ?? 0;
       return consA / targetA - consB / targetB;
     })
-    .slice(0, 3)
-    .filter((key) => GHOST_SUGGESTIONS[key])
+    .slice(0, 3);
+}
+
+export function fallbackGhostNodes(
+  deficiencies: (keyof FoodMicros)[],
+): GhostNodeData[] {
+  return deficiencies
+    .filter((key) => GHOST_FALLBACKS[key])
     .map((key) => ({
       id: `ghost-${key}`,
       isGhost: true as const,
       deficientNutrient: key,
-      name: GHOST_SUGGESTIONS[key].name,
-      calories: GHOST_SUGGESTIONS[key].calories,
+      name: GHOST_FALLBACKS[key].name,
+      calories: GHOST_FALLBACKS[key].calories,
     }));
 }

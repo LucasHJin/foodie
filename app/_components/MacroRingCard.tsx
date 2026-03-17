@@ -75,7 +75,7 @@ export default function MacroRingCard({ entry, x, y }: MacroRingCardProps) {
               cy={RING_SIZE / 2}
               r={R}
               fill="none"
-              stroke="#292524"
+              stroke="hsl(12, 42%, 58%)"
               strokeWidth={STROKE}
               strokeDasharray={proteinDash}
               strokeDashoffset={proteinOffset}
@@ -86,7 +86,7 @@ export default function MacroRingCard({ entry, x, y }: MacroRingCardProps) {
               cy={RING_SIZE / 2}
               r={R}
               fill="none"
-              stroke="#78716c"
+              stroke="hsl(38, 52%, 58%)"
               strokeWidth={STROKE}
               strokeDasharray={carbsDash}
               strokeDashoffset={carbsOffset}
@@ -97,7 +97,7 @@ export default function MacroRingCard({ entry, x, y }: MacroRingCardProps) {
               cy={RING_SIZE / 2}
               r={R}
               fill="none"
-              stroke="#d6d3d1"
+              stroke="hsl(85, 28%, 55%)"
               strokeWidth={STROKE}
               strokeDasharray={fatDash}
               strokeDashoffset={fatOffset}
@@ -107,17 +107,17 @@ export default function MacroRingCard({ entry, x, y }: MacroRingCardProps) {
 
           <div className="flex flex-col gap-1 text-[10px]">
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-stone-800 shrink-0" />
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: 'hsl(12, 42%, 58%)' }} />
               <span className="text-stone-500">P</span>
               <span className="font-mono text-stone-700 ml-auto">{entry.protein_g.toFixed(1)}g</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-stone-500 shrink-0" />
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: 'hsl(38, 52%, 58%)' }} />
               <span className="text-stone-500">C</span>
               <span className="font-mono text-stone-700 ml-auto">{entry.carbs_g.toFixed(1)}g</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-stone-300 shrink-0" />
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: 'hsl(85, 28%, 55%)' }} />
               <span className="text-stone-500">F</span>
               <span className="font-mono text-stone-700 ml-auto">{entry.fat_g.toFixed(1)}g</span>
             </div>

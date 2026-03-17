@@ -104,6 +104,11 @@ export default function FoodiePage() {
         zinc_mg: s(per100g.zinc_mg),
         magnesium_mg: s(per100g.magnesium_mg),
         potassium_mg: s(per100g.potassium_mg),
+        vitaminA_mcg: s(per100g.vitaminA_mcg),
+        vitaminB6_mg: s(per100g.vitaminB6_mg),
+        vitaminB12_mcg: s(per100g.vitaminB12_mcg),
+        folate_mcg: s(per100g.folate_mcg),
+        phosphorus_mg: s(per100g.phosphorus_mg),
       },
       addedAt: new Date().toISOString(),
     };

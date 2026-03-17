@@ -26,6 +26,11 @@ const NUTRIENT_ID_MAP: Record<number, string> = {
   1095: 'zinc_mg',
   1090: 'magnesium_mg',
   1092: 'potassium_mg',
+  1106: 'vitaminA_mcg',
+  1175: 'vitaminB6_mg',
+  1178: 'vitaminB12_mcg',
+  1177: 'folate_mcg',
+  1091: 'phosphorus_mg',
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

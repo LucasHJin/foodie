@@ -8,17 +8,22 @@ import { NextRequest, NextResponse } from 'next/server';
  * All amounts are per 100g (USDA normalises to per-100g in search results).
  */
 const NUTRIENT_NUMBER_MAP: Record<number, string> = {
-  208: 'calories',     // Energy
-  203: 'protein_g',    // Protein
-  205: 'carbs_g',      // Carbohydrate, by difference
-  204: 'fat_g',        // Total lipid (fat)
-  303: 'iron_mg',      // Iron, Fe
-  301: 'calcium_mg',   // Calcium, Ca
-  328: 'vitaminD_mcg', // Vitamin D (D2+D3), mcg
-  401: 'vitaminC_mg',  // Vitamin C, total ascorbic acid
-  309: 'zinc_mg',      // Zinc, Zn
-  304: 'magnesium_mg', // Magnesium, Mg
-  306: 'potassium_mg', // Potassium, K
+  208: 'calories',       // Energy
+  203: 'protein_g',      // Protein
+  205: 'carbs_g',        // Carbohydrate, by difference
+  204: 'fat_g',          // Total lipid (fat)
+  303: 'iron_mg',        // Iron, Fe
+  301: 'calcium_mg',     // Calcium, Ca
+  328: 'vitaminD_mcg',   // Vitamin D (D2+D3), mcg
+  401: 'vitaminC_mg',    // Vitamin C, total ascorbic acid
+  309: 'zinc_mg',        // Zinc, Zn
+  304: 'magnesium_mg',   // Magnesium, Mg
+  306: 'potassium_mg',   // Potassium, K
+  320: 'vitaminA_mcg',   // Vitamin A, RAE
+  415: 'vitaminB6_mg',   // Vitamin B6
+  418: 'vitaminB12_mcg', // Vitamin B12
+  417: 'folate_mcg',     // Folate, total
+  305: 'phosphorus_mg',  // Phosphorus, P
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
