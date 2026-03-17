@@ -118,7 +118,7 @@ export default function FoodSearchBar({ onConfirm, onClose }: FoodSearchBarProps
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Blur backdrop — click to close */}
       <div
-        className="absolute inset-0 bg-stone-900/25 backdrop-blur-md"
+        className="absolute inset-0 bg-stone-900/25 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden
       />

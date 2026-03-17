@@ -151,7 +151,7 @@ export default function FoodiePage() {
 
         {/* Floating date navigator — top center */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
-          <div className="bg-white/85 backdrop-blur-md border border-stone-200/70 rounded-full px-4 py-2 shadow-sm shadow-stone-200/40">
+          <div className="bg-white/85 backdrop-blur-sm border border-stone-200/70 rounded-full px-4 py-2 shadow-sm shadow-stone-200/40">
             <DayNavigator date={currentDate} onDateChange={setCurrentDate} />
           </div>
         </div>

@@ -50,7 +50,7 @@ export default function NutrientDetailPanel({ totals, targets, onClose }: Nutrie
       onClick={onClose}
     >
       {/* Blur backdrop */}
-      <div className="absolute inset-0 bg-stone-900/25 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-stone-900/25 backdrop-blur-sm" />
 
       {/* Modal */}
       <div

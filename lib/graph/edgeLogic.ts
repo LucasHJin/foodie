@@ -1,7 +1,7 @@
 import { FoodEntry, FoodMicros, MicroTargets, GraphEdge } from '../types';
 
-const EDGE_THRESHOLD = 0.25;
-const MICRO_SIGNIFICANCE = 0.10;
+const EDGE_THRESHOLD = 0.35;
+const MICRO_SIGNIFICANCE = 0.15;
 
 const MICRO_KEYS: (keyof FoodMicros)[] = [
   'iron_mg',
@@ -46,7 +46,7 @@ export function buildEdges(nodes: FoodEntry[], targets: MicroTargets): GraphEdge
   for (let i = 0; i < nodes.length; i++) {
     for (let j = i + 1; j < nodes.length; j++) {
       const { score, significantCount } = computeEdgeScore(nodes[i], nodes[j], targets);
-      if (score >= EDGE_THRESHOLD && significantCount >= 2) {
+      if (score >= EDGE_THRESHOLD && significantCount >= 3) {
         edges.push({
           source: nodes[i].id,
           target: nodes[j].id,

@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { forceCollide, forceManyBody } = require('d3-force-3d');
 import { FoodEntry, NutritionTargets, AnyGraphNode, GraphEdge, FoodGraphNode, GhostNodeData } from '@/lib/types';
 import { buildEdges } from '@/lib/graph/edgeLogic';
 import { computeGhostNodes } from '@/lib/graph/ghostNodes';
@@ -152,17 +154,44 @@ export default function GraphCanvas({
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [handleMouseMove]);
 
+  useEffect(() => {
+    const configure = () => {
+      const fg = graphRef.current;
+      if (!fg || typeof fg.d3Force !== 'function') return false;
+
+      fg.d3Force('charge', forceManyBody().strength(-180));
+
+      const linkForce = fg.d3Force('link');
+      if (linkForce) linkForce.distance(180).strength(0.012);
+
+      fg.d3Force('collision', forceCollide((node: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+        const isGhost = node.isGhost === true;
+        return getNodeRadius(node.calories ?? 0, isGhost) + 20;
+      }).strength(1));
+
+      fg.d3ReheatSimulation();
+      return true;
+    };
+
+    if (configure()) return;
+
+    const interval = setInterval(() => {
+      if (configure()) clearInterval(interval);
+    }, 80);
+    return () => clearInterval(interval);
+  }, [graphData]);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const linkColor = useCallback((link: any) => {
     const score = (link as GraphLink).score ?? 0;
-    const alpha = Math.min(0.15 + score * 0.12, 0.55);
+    const alpha = Math.min(0.35 + score * 0.3, 0.8);
     return `rgba(100, 95, 88, ${alpha})`;
   }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const linkWidth = useCallback((link: any) => {
     const score = (link as GraphLink).score ?? 0;
-    return Math.min(0.5 + score * 0.4, 2.5);
+    return Math.min(1.2 + score * 0.8, 4);
   }, []);
 
   return (
@@ -188,9 +217,9 @@ export default function GraphCanvas({
         linkColor={linkColor}
         linkWidth={linkWidth}
         linkDirectionalArrowLength={0}
-        cooldownTicks={120}
-        d3AlphaDecay={0.02}
-        d3VelocityDecay={0.3}
+        cooldownTicks={150}
+        d3AlphaDecay={0.015}
+        d3VelocityDecay={0.25}
         enableNodeDrag={true}
         enableZoomInteraction={true}
         minZoom={0.3}
