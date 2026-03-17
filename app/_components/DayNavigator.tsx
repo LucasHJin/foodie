@@ -1,6 +1,7 @@
 'use client';
 
 import { format, parseISO, addDays, subDays } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface DayNavigatorProps {
   date: string;
@@ -33,10 +34,19 @@ export default function DayNavigator({ date, onDateChange }: DayNavigatorProps) 
         </svg>
       </button>
 
-      <div className="text-center min-w-[120px]">
-        <span className="text-sm font-medium text-stone-700 tracking-tight">
-          {formatDateDisplay(date)}
-        </span>
+      <div className="text-center min-w-[120px] overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={date}
+            className="text-sm font-medium text-stone-700 tracking-tight block"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.15, ease: 'easeInOut' }}
+          >
+            {formatDateDisplay(date)}
+          </motion.span>
+        </AnimatePresence>
         <div className="text-[10px] text-stone-400 mt-0.5 font-mono">
           {format(parseISO(date), 'yyyy.MM.dd')}
         </div>

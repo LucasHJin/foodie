@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
+import { AnimatePresence } from 'framer-motion';
 import { UserConfig, FoodEntry, SearchResult, GhostNodeData, DailyTotals, FoodMicros } from '@/lib/types';
 import { IndexedDBAdapter } from '@/lib/storage/IndexedDBAdapter';
 import OnboardingFlow from './_components/OnboardingFlow';
@@ -179,12 +180,15 @@ export default function FoodiePage() {
       </div>
 
       {/* Floating search + inline amount confirm */}
-      {searchOpen && (
-        <FoodSearchBar
-          onConfirm={handleFoodConfirm}
-          onClose={() => setSearchOpen(false)}
-        />
-      )}
+      <AnimatePresence>
+        {searchOpen && (
+          <FoodSearchBar
+            key="food-search"
+            onConfirm={handleFoodConfirm}
+            onClose={() => setSearchOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

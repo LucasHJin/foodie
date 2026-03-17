@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SearchResult } from '@/lib/types';
 
 interface FoodSearchBarProps {
@@ -117,14 +118,22 @@ export default function FoodSearchBar({ onConfirm, onClose }: FoodSearchBarProps
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Blur backdrop — click to close */}
-      <div
+      <motion.div
         className="absolute inset-0 bg-stone-900/25 backdrop-blur-sm"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18 }}
         onClick={onClose}
         aria-hidden
       />
 
-      <div
+      <motion.div
         className="relative w-[520px] max-w-[calc(100vw-2rem)]"
+        initial={{ opacity: 0, scale: 0.96, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.97, y: 6 }}
+        transition={{ type: 'spring', damping: 26, stiffness: 380, mass: 0.8 }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="bg-white rounded-2xl border border-stone-200 shadow-xl shadow-stone-200/60 overflow-hidden">
@@ -157,15 +166,27 @@ export default function FoodSearchBar({ onConfirm, onClose }: FoodSearchBarProps
           </div>
 
           {/* Results list */}
+          <AnimatePresence initial={false}>
           {results.length > 0 && (
-            <ul className="max-h-[340px] overflow-y-auto py-1">
+            <motion.ul
+              className="max-h-[340px] overflow-y-auto py-1"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+            >
               {results.map((food, idx) => {
                 const isSelected = selected?.fdcId === food.fdcId;
                 const rawCal = Math.round(food.calories);
                 const displayCal = rawCal > 0 ? rawCal : null;
 
                 return (
-                  <li key={`${food.fdcId}-${idx}`}>
+                  <motion.li
+                    key={`${food.fdcId}-${idx}`}
+                    initial={{ opacity: 0, x: -4 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.15, delay: Math.min(idx * 0.035, 0.25) }}
+                  >
                     <div
                       onClick={() => !isSelected && handleSelect(food)}
                       className={`px-4 flex items-center gap-0 transition-all duration-200 ${
@@ -244,11 +265,12 @@ export default function FoodSearchBar({ onConfirm, onClose }: FoodSearchBarProps
                         </>
                       )}
                     </div>
-                  </li>
+                  </motion.li>
                 );
               })}
-            </ul>
+            </motion.ul>
           )}
+          </AnimatePresence>
 
           {query && !loading && results.length === 0 && (
             <div className="px-4 py-5 text-sm text-stone-400 text-center">
@@ -257,12 +279,17 @@ export default function FoodSearchBar({ onConfirm, onClose }: FoodSearchBarProps
           )}
         </div>
 
-        <div className="text-center mt-2">
+        <motion.div
+          className="text-center mt-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.12, duration: 0.2 }}
+        >
           <span className="text-[10px] text-stone-400">
             {selected ? 'enter to add · esc to deselect' : 'esc to close · ↑↓ navigate'}
           </span>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

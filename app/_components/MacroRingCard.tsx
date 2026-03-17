@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import { FoodEntry, FoodMicros, MICRO_LABELS, MICRO_UNITS } from '@/lib/types';
 
 interface MacroRingCardProps {
@@ -51,9 +52,13 @@ export default function MacroRingCard({ entry, x, y }: MacroRingCardProps) {
   }
 
   return (
-    <div
+    <motion.div
       className="fixed z-50 pointer-events-none"
       style={{ left: cardX, top: cardY }}
+      initial={{ opacity: 0, scale: 0.93, y: 4 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.93, y: 4 }}
+      transition={{ duration: 0.13, ease: 'easeOut' }}
     >
       <div className="bg-white border border-stone-200 rounded-xl shadow-lg shadow-stone-100/80 p-4 w-[200px]">
         <div className="text-xs font-medium text-stone-800 mb-3 leading-tight truncate">
@@ -141,6 +146,6 @@ export default function MacroRingCard({ entry, x, y }: MacroRingCardProps) {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

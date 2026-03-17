@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { forceCollide, forceManyBody } = require('d3-force-3d');
+import { AnimatePresence } from 'framer-motion';
 import { FoodEntry, FoodMicros, NutritionTargets, AnyGraphNode, GraphEdge, FoodGraphNode, GhostNodeData, MICRO_LABELS } from '@/lib/types';
 import { buildEdges } from '@/lib/graph/edgeLogic';
 import { findDeficiencies, fallbackGhostNodes } from '@/lib/graph/ghostNodes';
@@ -272,13 +273,16 @@ export default function GraphCanvas({
         maxZoom={5}
       />
 
-      {hoveredNode && (
-        <MacroRingCard
-          entry={hoveredNode}
-          x={hoverPos.x}
-          y={hoverPos.y}
-        />
-      )}
+      <AnimatePresence>
+        {hoveredNode && (
+          <MacroRingCard
+            key={hoveredNode.id}
+            entry={hoveredNode}
+            x={hoverPos.x}
+            y={hoverPos.y}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

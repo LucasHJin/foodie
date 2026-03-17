@@ -1,6 +1,7 @@
 'use client';
 
 import { createPortal } from 'react-dom';
+import { motion } from 'framer-motion';
 import { DailyTotals, NutritionTargets, FoodMicros, MICRO_LABELS, MICRO_UNITS } from '@/lib/types';
 
 interface NutrientDetailPanelProps {
@@ -32,9 +33,11 @@ function ProgressBar({ label, value, target, unit }: ProgressBarProps) {
         </span>
       </div>
       <div className="h-[3px] bg-stone-100 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${over ? 'bg-stone-700' : 'bg-stone-400'}`}
-          style={{ width: `${pct}%` }}
+        <motion.div
+          className={`h-full rounded-full ${over ? 'bg-stone-700' : 'bg-stone-400'}`}
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.65, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.2 }}
         />
       </div>
     </div>
@@ -45,17 +48,25 @@ export default function NutrientDetailPanel({ totals, targets, onClose }: Nutrie
   const microKeys = Object.keys(MICRO_LABELS) as (keyof FoodMicros)[];
 
   const content = (
-    <div
+    <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       onClick={onClose}
     >
       {/* Blur backdrop */}
       <div className="absolute inset-0 bg-stone-900/25 backdrop-blur-sm" />
 
       {/* Modal */}
-      <div
+      <motion.div
         className="relative bg-white rounded-2xl border border-stone-200/60 shadow-2xl shadow-stone-400/20 flex flex-col"
         style={{ width: '82vw', height: '75vh' }}
+        initial={{ scale: 0.96, y: 16 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.96, y: 16 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 360, mass: 0.9 }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -102,8 +113,8 @@ export default function NutrientDetailPanel({ totals, targets, onClose }: Nutrie
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 
   return typeof document !== 'undefined'

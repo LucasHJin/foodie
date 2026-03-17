@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { DailyTotals, NutritionTargets } from '@/lib/types';
 import NutrientDetailPanel from './NutrientDetailPanel';
 
@@ -36,13 +37,16 @@ export default function CalorieBar({ totals, targets }: CalorieBarProps) {
         </span>
       </button>
 
-      {open && (
-        <NutrientDetailPanel
-          totals={totals}
-          targets={targets}
-          onClose={() => setOpen(false)}
-        />
-      )}
+      <AnimatePresence>
+        {open && (
+          <NutrientDetailPanel
+            key="nutrient-panel"
+            totals={totals}
+            targets={targets}
+            onClose={() => setOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }

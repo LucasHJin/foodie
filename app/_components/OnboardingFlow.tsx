@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Goal, ActivityLevel, Sex, UserConfig } from '@/lib/types';
 
 interface OnboardingFlowProps {
@@ -23,14 +24,24 @@ const ACTIVITY_LEVELS: { value: ActivityLevel; label: string; desc: string }[] =
 
 type Step = 'goal' | 'profile' | 'activity' | 'loading';
 
+const stepVariants = {
+  enter: (dir: number) => ({ x: dir * 32, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (dir: number) => ({ x: dir * -32, opacity: 0 }),
+};
+
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [step, setStep] = useState<Step>('goal');
+  const [direction, setDirection] = useState(1);
   const [goal, setGoal] = useState<Goal>('maintain');
   const [weight, setWeight] = useState('');
   const [age, setAge] = useState('');
   const [sex, setSex] = useState<Sex>('male');
   const [activityLevel, setActivityLevel] = useState<ActivityLevel>('moderate');
   const [error, setError] = useState('');
+
+  const goForward = (next: Step) => { setDirection(1); setStep(next); };
+  const goBack = (prev: Step) => { setDirection(-1); setStep(prev); };
 
   const handleProfileNext = () => {
     if (!weight || isNaN(Number(weight)) || Number(weight) < 30 || Number(weight) > 300) {
@@ -42,7 +53,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       return;
     }
     setError('');
-    setStep('activity');
+    goForward('activity');
   };
 
   const handleFinish = async () => {
@@ -96,141 +107,169 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           </div>
         </div>
 
-        {step === 'goal' && (
-          <div>
-            <h1 className="text-xl font-medium text-stone-900 mb-1 tracking-tight">What&apos;s your goal?</h1>
-            <p className="text-sm text-stone-400 mb-7">This shapes your calorie and macro targets.</p>
-            <div className="space-y-2.5">
-              {GOALS.map(({ value, label, desc }) => (
-                <button
-                  key={value}
-                  onClick={() => setGoal(value)}
-                  className={`w-full text-left px-4 py-3.5 rounded-xl border transition-all ${
-                    goal === value
-                      ? 'border-stone-800 bg-stone-900 text-white'
-                      : 'border-stone-200 bg-white hover:border-stone-300 text-stone-700'
-                  }`}
-                >
-                  <div className="font-medium text-sm">{label}</div>
-                  <div className={`text-xs mt-0.5 ${goal === value ? 'text-stone-400' : 'text-stone-400'}`}>{desc}</div>
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setStep('profile')}
-              className="w-full mt-6 py-3 bg-stone-900 text-white text-sm font-medium rounded-xl hover:bg-stone-800 transition-colors"
-            >
-              Continue
-            </button>
-          </div>
-        )}
-
-        {step === 'profile' && (
-          <div>
-            <h1 className="text-xl font-medium text-stone-900 mb-1 tracking-tight">Your body</h1>
-            <p className="text-sm text-stone-400 mb-7">Used to calculate your TDEE accurately.</p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs text-stone-500 block mb-1.5">Sex</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {(['male', 'female'] as Sex[]).map((s) => (
+        <div className="overflow-hidden">
+          <AnimatePresence mode="wait" custom={direction}>
+            {step === 'goal' && (
+              <motion.div
+                key="goal"
+                custom={direction}
+                variants={stepVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+              >
+                <h1 className="text-xl font-medium text-stone-900 mb-1 tracking-tight">What&apos;s your goal?</h1>
+                <p className="text-sm text-stone-400 mb-7">This shapes your calorie and macro targets.</p>
+                <div className="space-y-2.5">
+                  {GOALS.map(({ value, label, desc }) => (
                     <button
-                      key={s}
-                      onClick={() => setSex(s)}
-                      className={`py-2.5 rounded-xl border text-sm font-medium capitalize transition-all ${
-                        sex === s
+                      key={value}
+                      onClick={() => setGoal(value)}
+                      className={`w-full text-left px-4 py-3.5 rounded-xl border transition-all ${
+                        goal === value
                           ? 'border-stone-800 bg-stone-900 text-white'
-                          : 'border-stone-200 bg-white hover:border-stone-300 text-stone-600'
+                          : 'border-stone-200 bg-white hover:border-stone-300 text-stone-700'
                       }`}
                     >
-                      {s}
+                      <div className="font-medium text-sm">{label}</div>
+                      <div className={`text-xs mt-0.5 ${goal === value ? 'text-stone-400' : 'text-stone-400'}`}>{desc}</div>
                     </button>
                   ))}
                 </div>
-              </div>
-
-              <div>
-                <label className="text-xs text-stone-500 block mb-1.5">Weight (kg)</label>
-                <input
-                  type="number"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  placeholder="70"
-                  className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm text-stone-800 outline-none focus:border-stone-400 transition-colors bg-white placeholder:text-stone-300 font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-stone-500 block mb-1.5">Age</label>
-                <input
-                  type="number"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  placeholder="25"
-                  className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm text-stone-800 outline-none focus:border-stone-400 transition-colors bg-white placeholder:text-stone-300 font-mono"
-                />
-              </div>
-            </div>
-
-            {error && <p className="text-xs text-red-500 mt-3">{error}</p>}
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setStep('goal')}
-                className="px-5 py-3 border border-stone-200 text-stone-600 text-sm font-medium rounded-xl hover:bg-stone-50 transition-colors"
-              >
-                Back
-              </button>
-              <button
-                onClick={handleProfileNext}
-                className="flex-1 py-3 bg-stone-900 text-white text-sm font-medium rounded-xl hover:bg-stone-800 transition-colors"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 'activity' && (
-          <div>
-            <h1 className="text-xl font-medium text-stone-900 mb-1 tracking-tight">Activity level</h1>
-            <p className="text-sm text-stone-400 mb-7">How much do you move day-to-day?</p>
-            <div className="space-y-2">
-              {ACTIVITY_LEVELS.map(({ value, label, desc }) => (
                 <button
-                  key={value}
-                  onClick={() => setActivityLevel(value)}
-                  className={`w-full text-left px-4 py-3 rounded-xl border transition-all ${
-                    activityLevel === value
-                      ? 'border-stone-800 bg-stone-900 text-white'
-                      : 'border-stone-200 bg-white hover:border-stone-300 text-stone-700'
-                  }`}
+                  onClick={() => goForward('profile')}
+                  className="w-full mt-6 py-3 bg-stone-900 text-white text-sm font-medium rounded-xl hover:bg-stone-800 transition-colors"
                 >
-                  <div className="font-medium text-sm">{label}</div>
-                  <div className="text-xs mt-0.5 text-stone-400">{desc}</div>
+                  Continue
                 </button>
-              ))}
-            </div>
+              </motion.div>
+            )}
 
-            {error && <p className="text-xs text-red-500 mt-3">{error}</p>}
+            {step === 'profile' && (
+              <motion.div
+                key="profile"
+                custom={direction}
+                variants={stepVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+              >
+                <h1 className="text-xl font-medium text-stone-900 mb-1 tracking-tight">Your body</h1>
+                <p className="text-sm text-stone-400 mb-7">Used to calculate your TDEE accurately.</p>
 
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setStep('profile')}
-                className="px-5 py-3 border border-stone-200 text-stone-600 text-sm font-medium rounded-xl hover:bg-stone-50 transition-colors"
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs text-stone-500 block mb-1.5">Sex</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['male', 'female'] as Sex[]).map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => setSex(s)}
+                          className={`py-2.5 rounded-xl border text-sm font-medium capitalize transition-all ${
+                            sex === s
+                              ? 'border-stone-800 bg-stone-900 text-white'
+                              : 'border-stone-200 bg-white hover:border-stone-300 text-stone-600'
+                          }`}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-stone-500 block mb-1.5">Weight (kg)</label>
+                    <input
+                      type="number"
+                      value={weight}
+                      onChange={(e) => setWeight(e.target.value)}
+                      placeholder="70"
+                      className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm text-stone-800 outline-none focus:border-stone-400 transition-colors bg-white placeholder:text-stone-300 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-stone-500 block mb-1.5">Age</label>
+                    <input
+                      type="number"
+                      value={age}
+                      onChange={(e) => setAge(e.target.value)}
+                      placeholder="25"
+                      className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm text-stone-800 outline-none focus:border-stone-400 transition-colors bg-white placeholder:text-stone-300 font-mono"
+                    />
+                  </div>
+                </div>
+
+                {error && <p className="text-xs text-red-500 mt-3">{error}</p>}
+
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={() => goBack('goal')}
+                    className="px-5 py-3 border border-stone-200 text-stone-600 text-sm font-medium rounded-xl hover:bg-stone-50 transition-colors"
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={handleProfileNext}
+                    className="flex-1 py-3 bg-stone-900 text-white text-sm font-medium rounded-xl hover:bg-stone-800 transition-colors"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 'activity' && (
+              <motion.div
+                key="activity"
+                custom={direction}
+                variants={stepVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
               >
-                Back
-              </button>
-              <button
-                onClick={handleFinish}
-                className="flex-1 py-3 bg-stone-900 text-white text-sm font-medium rounded-xl hover:bg-stone-800 transition-colors"
-              >
-                Calculate targets
-              </button>
-            </div>
-          </div>
-        )}
+                <h1 className="text-xl font-medium text-stone-900 mb-1 tracking-tight">Activity level</h1>
+                <p className="text-sm text-stone-400 mb-7">How much do you move day-to-day?</p>
+                <div className="space-y-2">
+                  {ACTIVITY_LEVELS.map(({ value, label, desc }) => (
+                    <button
+                      key={value}
+                      onClick={() => setActivityLevel(value)}
+                      className={`w-full text-left px-4 py-3 rounded-xl border transition-all ${
+                        activityLevel === value
+                          ? 'border-stone-800 bg-stone-900 text-white'
+                          : 'border-stone-200 bg-white hover:border-stone-300 text-stone-700'
+                      }`}
+                    >
+                      <div className="font-medium text-sm">{label}</div>
+                      <div className="text-xs mt-0.5 text-stone-400">{desc}</div>
+                    </button>
+                  ))}
+                </div>
+
+                {error && <p className="text-xs text-red-500 mt-3">{error}</p>}
+
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={() => goBack('profile')}
+                    className="px-5 py-3 border border-stone-200 text-stone-600 text-sm font-medium rounded-xl hover:bg-stone-50 transition-colors"
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={handleFinish}
+                    className="flex-1 py-3 bg-stone-900 text-white text-sm font-medium rounded-xl hover:bg-stone-800 transition-colors"
+                  >
+                    Calculate targets
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
