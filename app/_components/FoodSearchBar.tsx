@@ -115,11 +115,18 @@ export default function FoodSearchBar({ onConfirm, onClose }: FoodSearchBarProps
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div className="w-[520px] max-w-[calc(100vw-2rem)]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Blur backdrop — click to close */}
+      <div
+        className="absolute inset-0 bg-stone-900/25 backdrop-blur-md"
+        onClick={onClose}
+        aria-hidden
+      />
+
+      <div
+        className="relative w-[520px] max-w-[calc(100vw-2rem)]"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="bg-white rounded-2xl border border-stone-200 shadow-xl shadow-stone-200/60 overflow-hidden">
 
           {/* Search input — always visible */}

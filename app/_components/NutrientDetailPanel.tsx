@@ -1,5 +1,6 @@
 'use client';
 
+import { createPortal } from 'react-dom';
 import { DailyTotals, NutritionTargets, FoodMicros, MICRO_LABELS, MICRO_UNITS } from '@/lib/types';
 
 interface NutrientDetailPanelProps {
@@ -43,7 +44,7 @@ function ProgressBar({ label, value, target, unit }: ProgressBarProps) {
 export default function NutrientDetailPanel({ totals, targets, onClose }: NutrientDetailPanelProps) {
   const microKeys = Object.keys(MICRO_LABELS) as (keyof FoodMicros)[];
 
-  return (
+  const content = (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center"
       onClick={onClose}
@@ -104,4 +105,8 @@ export default function NutrientDetailPanel({ totals, targets, onClose }: Nutrie
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined'
+    ? createPortal(content, document.body)
+    : content;
 }
