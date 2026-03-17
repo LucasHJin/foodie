@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { forceCollide, forceManyBody } = require('d3-force-3d');
-import { FoodEntry, NutritionTargets, AnyGraphNode, GraphEdge, FoodGraphNode, GhostNodeData } from '@/lib/types';
+import { FoodEntry, FoodMicros, NutritionTargets, AnyGraphNode, GraphEdge, FoodGraphNode, GhostNodeData, MICRO_LABELS } from '@/lib/types';
 import { buildEdges } from '@/lib/graph/edgeLogic';
 import { computeGhostNodes } from '@/lib/graph/ghostNodes';
 import MacroRingCard from './MacroRingCard';
@@ -27,6 +27,7 @@ interface GraphLink {
   source: string;
   target: string;
   score: number;
+  sharedMicros: (keyof FoodMicros)[];
 }
 
 interface GraphData {
@@ -66,7 +67,7 @@ export default function GraphCanvas({
 
     setGraphData({
       nodes: [...foodNodes, ...ghostNodes],
-      links: edges.map((e: GraphEdge) => ({ source: e.source, target: e.target, score: e.score })),
+      links: edges.map((e: GraphEdge) => ({ source: e.source, target: e.target, score: e.score, sharedMicros: e.sharedMicros })),
     });
   }, [entries, targets]);
 
@@ -159,7 +160,7 @@ export default function GraphCanvas({
       const fg = graphRef.current;
       if (!fg || typeof fg.d3Force !== 'function') return false;
 
-      fg.d3Force('charge', forceManyBody().strength(-180));
+      fg.d3Force('charge', forceManyBody().strength(-90));
 
       const linkForce = fg.d3Force('link');
       if (linkForce) linkForce.distance(180).strength(0.012);
@@ -194,6 +195,12 @@ export default function GraphCanvas({
     return Math.min(1.2 + score * 0.8, 4);
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const linkLabel = useCallback((link: any) => {
+    const micros = (link as GraphLink).sharedMicros ?? [];
+    return micros.map((m) => MICRO_LABELS[m]).join(' · ');
+  }, []);
+
   return (
     <div className="relative w-full h-full">
       {graphData.nodes.length === 0 && (
@@ -216,6 +223,7 @@ export default function GraphCanvas({
         onNodeClick={handleNodeClick}
         linkColor={linkColor}
         linkWidth={linkWidth}
+        linkLabel={linkLabel}
         linkDirectionalArrowLength={0}
         cooldownTicks={150}
         d3AlphaDecay={0.015}

@@ -17,9 +17,9 @@ export function computeEdgeScore(
   a: FoodEntry,
   b: FoodEntry,
   targets: MicroTargets
-): { score: number; significantCount: number } {
+): { score: number; sharedMicros: (keyof FoodMicros)[] } {
   let score = 0;
-  let significantCount = 0;
+  const sharedMicros: (keyof FoodMicros)[] = [];
 
   for (const micro of MICRO_KEYS) {
     const target = targets[micro];
@@ -33,11 +33,11 @@ export function computeEdgeScore(
 
     if (aRatio >= MICRO_SIGNIFICANCE || bRatio >= MICRO_SIGNIFICANCE) {
       score += aRatio + bRatio;
-      significantCount++;
+      sharedMicros.push(micro);
     }
   }
 
-  return { score, significantCount };
+  return { score, sharedMicros };
 }
 
 export function buildEdges(nodes: FoodEntry[], targets: MicroTargets): GraphEdge[] {
@@ -45,12 +45,13 @@ export function buildEdges(nodes: FoodEntry[], targets: MicroTargets): GraphEdge
 
   for (let i = 0; i < nodes.length; i++) {
     for (let j = i + 1; j < nodes.length; j++) {
-      const { score, significantCount } = computeEdgeScore(nodes[i], nodes[j], targets);
-      if (score >= EDGE_THRESHOLD && significantCount >= 3) {
+      const { score, sharedMicros } = computeEdgeScore(nodes[i], nodes[j], targets);
+      if (score >= EDGE_THRESHOLD && sharedMicros.length >= 2) {
         edges.push({
           source: nodes[i].id,
           target: nodes[j].id,
           score,
+          sharedMicros,
         });
       }
     }

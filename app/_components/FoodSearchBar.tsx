@@ -205,9 +205,16 @@ export default function FoodSearchBar({ onConfirm, onClose }: FoodSearchBarProps
                           <div className="w-px self-stretch bg-stone-200 shrink-0 mx-3" />
 
                           <div
-                            className="flex items-center gap-2 shrink-0 mr-2"
+                            className="flex items-center gap-2.5 shrink-0 mr-2"
                             onClick={(e) => e.stopPropagation()}
                           >
+                            <span className="text-sm font-mono font-semibold text-stone-700 tabular-nums">
+                              {Math.round((per100g.calories ?? 0) * ratio * baseGrams / 100)}
+                              <span className="text-stone-400 font-normal ml-0.5 text-[11px]">kcal</span>
+                            </span>
+
+                            <div className="w-px self-stretch bg-stone-200 shrink-0" />
+
                             <input
                               ref={ratioInputRef}
                               type="number"
@@ -222,12 +229,7 @@ export default function FoodSearchBar({ onConfirm, onClose }: FoodSearchBarProps
                               min={0.1}
                               className="w-10 text-center text-base font-mono font-semibold text-stone-800 outline-none bg-transparent leading-tight"
                             />
-                            <div className="flex flex-col items-start leading-none">
-                              <span className="text-[11px] text-stone-500 tabular-nums">× {baseLabel}</span>
-                              <span className="text-[10px] text-stone-400 tabular-nums mt-0.5">
-                                {Math.round((per100g.calories ?? 0) * ratio * baseGrams / 100)} kcal
-                              </span>
-                            </div>
+                            <span className="text-[11px] text-stone-500 tabular-nums">× {baseLabel}</span>
                           </div>
 
                           {/* Confirm */}

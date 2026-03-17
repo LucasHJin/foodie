@@ -75,6 +75,7 @@ export interface GraphEdge {
   source: string;
   target: string;
   score: number;
+  sharedMicros: (keyof FoodMicros)[];
 }
 
 export interface DailyTotals {
