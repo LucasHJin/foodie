@@ -32,19 +32,23 @@ export async function POST(request: NextRequest) {
     const nutrientList = deficientNutrients.map((n) => MICRO_LABELS[n]).join(', ');
     const currentList = currentFoods.length > 0 ? currentFoods.join(', ') : 'none yet';
 
-    const prompt = `You are a nutrition expert. A user is deficient in: ${nutrientList}.
+    const prompt = `You are a nutrition expert. A user is deficient in these nutrients: ${nutrientList}.
 They have already eaten today: ${currentList}.
 
-For each deficient nutrient, suggest ONE common whole food that is rich in it and complements their existing meals. Avoid foods they already ate.
+For each deficient nutrient below, suggest ONE common whole food rich in it that complements their existing meals. Avoid repeating foods they already ate.
 
-Return ONLY a JSON array with exactly ${deficientNutrients.length} objects:
-[
-  ${deficientNutrients.map((n) => `{ "nutrient": "${n}", "name": "<food name, max 20 chars>", "calories": <kcal per typical serving, integer> }`).join(',\n  ')}
-]`;
+Respond with a JSON array of exactly ${deficientNutrients.length} objects. Each object must have:
+- "nutrient": the nutrient key (use exactly the key provided below, unchanged)
+- "name": a short food name (max 20 characters)
+- "calories": an integer estimate of kcal in a typical serving
+
+Nutrient keys to cover (one object per key, in this order): ${deficientNutrients.map((n) => `"${n}"`).join(', ')}`;
 
     const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    const suggestions = JSON.parse(text);
+    const raw = result.response.text().trim();
+    // Strip markdown code fences if Gemini wraps the response
+    const jsonText = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    const suggestions = JSON.parse(jsonText);
 
     return NextResponse.json({ suggestions, source: 'gemini' });
   } catch (err) {
